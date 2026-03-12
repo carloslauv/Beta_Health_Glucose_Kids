@@ -1,63 +1,70 @@
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
-  ReferenceLine, ResponsiveContainer
+  ReferenceArea, ResponsiveContainer
 } from 'recharts'
-import { hourLabel } from '../../utils/curveUtils'
 
-const DISPLAY_TICKS = [0, 6, 12, 18, 24]
+const X_TICKS = [6, 12, 18]
+const HOUR_LABELS = { 6: '6 AM', 12: '12 PM', 18: '6 PM' }
 
 function CustomTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null
-  const insulin = payload[0]?.value
-  let desc, color
-  if (insulin <= 10) { desc = 'Baseline — fat burning mode! 🔥'; color = '#16a34a' }
-  else if (insulin <= 30) { desc = 'Elevated — mixed mode'; color = '#d97706' }
-  else { desc = 'High — fat storage mode! 🏋️'; color = '#dc2626' }
+  const val = payload[0]?.value
+  let mode, modeColor
+  if (val <= 10)      { mode = 'Fat burning';     modeColor = '#059669' }
+  else if (val <= 30) { mode = 'Mixed mode';       modeColor = '#d97706' }
+  else                { mode = 'Fat storage';      modeColor = '#dc2626' }
 
   return (
-    <div className="bg-white border-2 border-gray-200 rounded-xl shadow-lg p-3 text-xs">
-      <p className="font-bold text-gray-700">{hourLabel(label)}</p>
-      <p style={{ color }} className="font-extrabold text-base">{insulin} μIU/mL</p>
-      <p className="text-gray-500">{desc}</p>
+    <div className="bg-white rounded-lg shadow-md px-3 py-2.5 text-xs border border-zinc-100">
+      <p className="text-zinc-400 mb-1">
+        {Math.floor(label)}:{String(Math.round((label % 1) * 60)).padStart(2, '0')}
+      </p>
+      <p className="font-semibold text-zinc-900 text-sm">{val} μIU/mL</p>
+      <p style={{ color: modeColor }} className="font-medium mt-0.5">{mode}</p>
     </div>
   )
 }
 
-export default function InsulinChart({ data, animated = true }) {
+export default function InsulinChart({ data }) {
   return (
-    <ResponsiveContainer width="100%" height={160}>
-      <AreaChart data={data} margin={{ top: 8, right: 12, left: -10, bottom: 0 }}>
+    <ResponsiveContainer width="100%" height={140}>
+      <AreaChart data={data} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
         <defs>
-          <linearGradient id="insulinGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#7c3aed" stopOpacity={0.5} />
-            <stop offset="95%" stopColor="#7c3aed" stopOpacity={0.05} />
+          <linearGradient id="insGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stopColor="#8b5cf6" stopOpacity={0.12} />
+            <stop offset="100%" stopColor="#8b5cf6" stopOpacity={0}    />
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+        {/* Fat storage zone */}
+        <ReferenceArea y1={30} y2={120} fill="#fee2e2" fillOpacity={0.3} />
+        <CartesianGrid stroke="#f4f4f5" vertical={false} />
         <XAxis
           dataKey="time"
           type="number"
           domain={[0, 24]}
-          ticks={DISPLAY_TICKS}
-          tickFormatter={hourLabel}
-          tick={{ fontSize: 11, fill: '#6b7280' }}
+          ticks={X_TICKS}
+          tickFormatter={h => HOUR_LABELS[h] ?? ''}
+          tick={{ fontSize: 10, fill: '#a1a1aa' }}
+          axisLine={false}
+          tickLine={false}
         />
         <YAxis
           domain={[0, 120]}
-          tick={{ fontSize: 11, fill: '#6b7280' }}
+          ticks={[10, 30, 60, 100]}
+          tick={{ fontSize: 10, fill: '#a1a1aa' }}
+          axisLine={false}
+          tickLine={false}
         />
-        <Tooltip content={<CustomTooltip />} />
-        <ReferenceLine y={10} stroke="#22c55e" strokeDasharray="4 4" label={{ value: 'Fat burn zone', position: 'right', fontSize: 9, fill: '#16a34a' }} />
-        <ReferenceLine y={30} stroke="#ef4444" strokeDasharray="4 4" label={{ value: 'Fat store zone', position: 'right', fontSize: 9, fill: '#dc2626' }} />
+        <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#e4e4e7', strokeWidth: 1 }} />
         <Area
           type="monotone"
           dataKey="insulin"
-          stroke="#7c3aed"
-          strokeWidth={2.5}
-          fill="url(#insulinGrad)"
+          stroke="#8b5cf6"
+          strokeWidth={1.5}
+          fill="url(#insGrad)"
           dot={false}
-          isAnimationActive={animated}
-          animationDuration={1400}
+          isAnimationActive={true}
+          animationDuration={1000}
           animationEasing="ease-out"
         />
       </AreaChart>

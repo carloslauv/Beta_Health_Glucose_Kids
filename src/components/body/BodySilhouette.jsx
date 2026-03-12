@@ -1,138 +1,105 @@
 import { motion } from 'framer-motion'
 
-// fatScore: 0-100 — drives fat layer opacity and size
+// fatScore: 0–100. Clean minimal SVG figure, Stripe-aesthetic.
 export default function BodySilhouette({ fatScore = 0 }) {
-  const f = Math.min(1, fatScore / 100)  // 0 to 1
+  const f = Math.min(1, fatScore / 100)
 
-  // Fat layer scales
-  const bellyScale = 1 + f * 0.55
-  const thighScale = 1 + f * 0.40
-  const armScale = 1 + f * 0.25
-  const neckScale = 1 + f * 0.15
-  const fatOpacity = 0.2 + f * 0.65
+  // Body fill interpolates: zinc-200 (lean) → amber-200 → red-200 (heavy)
+  const bodyFill = f < 0.4 ? '#e4e4e7' : f < 0.7 ? '#fde68a' : '#fecaca'
+  const bodyStroke = f < 0.4 ? '#a1a1aa' : f < 0.7 ? '#d97706' : '#ef4444'
 
-  // Color: lean = green, fat = red
-  const bodyColor = f < 0.3 ? '#86efac' : f < 0.6 ? '#fde68a' : f < 0.85 ? '#fdba74' : '#fca5a5'
-  const strokeColor = f < 0.3 ? '#16a34a' : f < 0.6 ? '#d97706' : f < 0.85 ? '#ea580c' : '#dc2626'
+  // Fat layer color
+  const fatFill = f < 0.4 ? '#fde68a' : f < 0.7 ? '#fdba74' : '#f87171'
+
+  // Scale values
+  const belly = 1 + f * 0.65
+  const hips  = 1 + f * 0.55
+  const arms  = 1 + f * 0.30
 
   return (
-    <div className="flex flex-col items-center gap-1">
-      <svg viewBox="0 0 100 200" width="110" height="220" className="drop-shadow-md">
-        {/* ── Base silhouette ──────────────────────── */}
-        {/* Head */}
-        <motion.ellipse
-          cx="50" cy="22" rx="16" ry="18"
-          fill={bodyColor}
-          stroke={strokeColor}
-          strokeWidth="1.5"
-          animate={{ rx: 16 + f * 2, ry: 18 + f * 2, fill: bodyColor, stroke: strokeColor }}
-          transition={{ duration: 0.8, ease: 'easeOut' }}
-        />
-        {/* Neck */}
-        <motion.rect
-          x="44" y="38" width="12" height="8" rx="3"
-          fill={bodyColor}
-          stroke={strokeColor}
-          strokeWidth="1.5"
-          animate={{ width: 12 + f * 3, x: 44 - f * 1.5, fill: bodyColor, stroke: strokeColor }}
-          transition={{ duration: 0.8, ease: 'easeOut' }}
-        />
-        {/* Torso */}
-        <motion.ellipse
-          cx="50" cy="82" rx="18" ry="30"
-          fill={bodyColor}
-          stroke={strokeColor}
-          strokeWidth="1.5"
-          animate={{
-            rx: 18 * bellyScale,
-            ry: 30 + f * 5,
-            fill: bodyColor,
-            stroke: strokeColor,
-          }}
-          transition={{ duration: 0.8, ease: 'easeOut' }}
-        />
-        {/* Left arm */}
-        <motion.ellipse
-          cx="24" cy="82" rx="7" ry="22"
-          fill={bodyColor}
-          stroke={strokeColor}
-          strokeWidth="1.5"
-          animate={{ rx: 7 * armScale, fill: bodyColor, stroke: strokeColor }}
-          transition={{ duration: 0.8, ease: 'easeOut' }}
-        />
-        {/* Right arm */}
-        <motion.ellipse
-          cx="76" cy="82" rx="7" ry="22"
-          fill={bodyColor}
-          stroke={strokeColor}
-          strokeWidth="1.5"
-          animate={{ rx: 7 * armScale, fill: bodyColor, stroke: strokeColor }}
-          transition={{ duration: 0.8, ease: 'easeOut' }}
-        />
-        {/* Hips */}
-        <motion.ellipse
-          cx="50" cy="116" rx="22" ry="14"
-          fill={bodyColor}
-          stroke={strokeColor}
-          strokeWidth="1.5"
-          animate={{ rx: 22 + f * 10, fill: bodyColor, stroke: strokeColor }}
-          transition={{ duration: 0.8, ease: 'easeOut' }}
-        />
-        {/* Left thigh */}
-        <motion.ellipse
-          cx="38" cy="152" rx="11" ry="24"
-          fill={bodyColor}
-          stroke={strokeColor}
-          strokeWidth="1.5"
-          animate={{ rx: 11 * thighScale, fill: bodyColor, stroke: strokeColor }}
-          transition={{ duration: 0.8, ease: 'easeOut' }}
-        />
-        {/* Right thigh */}
-        <motion.ellipse
-          cx="62" cy="152" rx="11" ry="24"
-          fill={bodyColor}
-          stroke={strokeColor}
-          strokeWidth="1.5"
-          animate={{ rx: 11 * thighScale, fill: bodyColor, stroke: strokeColor }}
-          transition={{ duration: 0.8, ease: 'easeOut' }}
-        />
-        {/* Left lower leg */}
-        <ellipse cx="36" cy="188" rx="7" ry="12" fill={bodyColor} stroke={strokeColor} strokeWidth="1.5" />
-        {/* Right lower leg */}
-        <ellipse cx="64" cy="188" rx="7" ry="12" fill={bodyColor} stroke={strokeColor} strokeWidth="1.5" />
+    <svg viewBox="0 0 80 180" width="70" height="158" className="flex-shrink-0">
+      {/* Head */}
+      <motion.ellipse
+        cx="40" cy="16" rx="12" ry="13"
+        animate={{ fill: bodyFill, stroke: bodyStroke }}
+        transition={{ duration: 0.7 }}
+        strokeWidth="1"
+      />
+      {/* Neck */}
+      <motion.rect
+        x="35" y="27" width="10" height="7" rx="2"
+        animate={{ fill: bodyFill, stroke: bodyStroke }}
+        transition={{ duration: 0.7 }}
+        strokeWidth="1"
+      />
+      {/* Torso */}
+      <motion.ellipse
+        cx="40" cy="65"
+        animate={{ rx: 14 * belly, ry: 24, fill: bodyFill, stroke: bodyStroke }}
+        transition={{ duration: 0.7 }}
+        strokeWidth="1"
+      />
+      {/* Left arm */}
+      <motion.ellipse
+        cx="20" cy="63"
+        animate={{ rx: 5 * arms, ry: 18, fill: bodyFill, stroke: bodyStroke }}
+        transition={{ duration: 0.7 }}
+        strokeWidth="1"
+      />
+      {/* Right arm */}
+      <motion.ellipse
+        cx="60" cy="63"
+        animate={{ rx: 5 * arms, ry: 18, fill: bodyFill, stroke: bodyStroke }}
+        transition={{ duration: 0.7 }}
+        strokeWidth="1"
+      />
+      {/* Hips */}
+      <motion.ellipse
+        cx="40" cy="92"
+        animate={{ rx: 17 * hips, ry: 11, fill: bodyFill, stroke: bodyStroke }}
+        transition={{ duration: 0.7 }}
+        strokeWidth="1"
+      />
+      {/* Left leg */}
+      <motion.ellipse
+        cx="33" cy="128"
+        animate={{ rx: 9 * (1 + f * 0.35), ry: 24, fill: bodyFill, stroke: bodyStroke }}
+        transition={{ duration: 0.7 }}
+        strokeWidth="1"
+      />
+      {/* Right leg */}
+      <motion.ellipse
+        cx="47" cy="128"
+        animate={{ rx: 9 * (1 + f * 0.35), ry: 24, fill: bodyFill, stroke: bodyStroke }}
+        transition={{ duration: 0.7 }}
+        strokeWidth="1"
+      />
+      {/* Lower legs */}
+      <motion.ellipse cx="33" cy="162" rx="6" ry="10" animate={{ fill: bodyFill, stroke: bodyStroke }} transition={{ duration: 0.7 }} strokeWidth="1" />
+      <motion.ellipse cx="47" cy="162" rx="6" ry="10" animate={{ fill: bodyFill, stroke: bodyStroke }} transition={{ duration: 0.7 }} strokeWidth="1" />
 
-        {/* ── Fat accumulation overlay ──────────────── */}
-        {/* Belly fat ring */}
-        <motion.ellipse
-          cx="50" cy="88" rx="5" ry="6"
-          fill="#f97316"
-          animate={{
-            rx: 5 + f * 18,
-            ry: 6 + f * 14,
-            opacity: fatOpacity,
-          }}
-          transition={{ duration: 0.8, ease: 'easeOut' }}
-        />
-        {/* Love handles */}
-        <motion.ellipse
-          cx="50" cy="108" rx="5" ry="4"
-          fill="#f97316"
-          animate={{
-            rx: 5 + f * 20,
-            ry: 4 + f * 8,
-            opacity: fatOpacity * 0.8,
-          }}
-          transition={{ duration: 0.8, ease: 'easeOut' }}
-        />
-      </svg>
-
-      {/* Fat % label */}
-      <div
-        className="text-xs font-bold px-3 py-1 rounded-full"
-        style={{ backgroundColor: bodyColor, color: strokeColor }}
-      >
-        {fatScore < 5 ? 'Lean 💪' : fatScore < 30 ? 'Healthy ✅' : fatScore < 60 ? 'Gaining ⚠️' : 'Excess Fat 🚨'}
-      </div>
-    </div>
+      {/* Fat overlay — belly */}
+      <motion.ellipse
+        cx="40" cy="70"
+        animate={{
+          rx: 3 + f * 16,
+          ry: 2 + f * 12,
+          opacity: 0.1 + f * 0.65,
+          fill: fatFill,
+        }}
+        transition={{ duration: 0.7 }}
+      />
+      {/* Fat overlay — hips/love handles */}
+      <motion.ellipse
+        cx="40" cy="88"
+        animate={{
+          rx: 2 + f * 14,
+          ry: 2 + f * 7,
+          opacity: 0.1 + f * 0.55,
+          fill: fatFill,
+        }}
+        transition={{ duration: 0.7 }}
+      />
+    </svg>
   )
 }

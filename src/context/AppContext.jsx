@@ -1,22 +1,16 @@
 import { createContext, useContext, useReducer } from 'react'
 
 const initialState = {
-  currentStep: 1,
   scenarioA: { selectedFoods: [], mealsPerDay: 3 },
   scenarioB: { selectedFoods: [], mealsPerDay: 3 },
   activeScenario: 'A',
-  animationPlaying: false,
-  animationProgress: 0,
-  timelineWeeks: 4,
   compareMode: false,
+  timelineWeeks: 12,
   selectedMacroTab: 'carbs',
 }
 
 function reducer(state, action) {
   switch (action.type) {
-    case 'SET_STEP':
-      return { ...state, currentStep: action.payload, animationPlaying: false, animationProgress: 0 }
-
     case 'TOGGLE_FOOD': {
       const key = state.activeScenario === 'A' ? 'scenarioA' : 'scenarioB'
       const scenario = state[key]
@@ -32,39 +26,51 @@ function reducer(state, action) {
       }
     }
 
-    case 'SET_MEALS': {
-      const key = state.activeScenario === 'A' ? 'scenarioA' : 'scenarioB'
+    case 'TOGGLE_FOOD_IN': {
+      const key = action.scenario === 'A' ? 'scenarioA' : 'scenarioB'
+      const scenario = state[key]
+      const exists = scenario.selectedFoods.includes(action.payload)
       return {
         ...state,
-        [key]: { ...state[key], mealsPerDay: action.payload },
+        [key]: {
+          ...scenario,
+          selectedFoods: exists
+            ? scenario.selectedFoods.filter(id => id !== action.payload)
+            : [...scenario.selectedFoods, action.payload],
+        },
       }
     }
 
-    case 'SET_ANIMATION_PLAYING':
-      return { ...state, animationPlaying: action.payload }
+    case 'SET_MEALS': {
+      const key = state.activeScenario === 'A' ? 'scenarioA' : 'scenarioB'
+      return { ...state, [key]: { ...state[key], mealsPerDay: action.payload } }
+    }
 
-    case 'SET_ANIMATION_PROGRESS':
-      return { ...state, animationProgress: action.payload }
+    case 'SET_MEALS_IN': {
+      const key = action.scenario === 'A' ? 'scenarioA' : 'scenarioB'
+      return { ...state, [key]: { ...state[key], mealsPerDay: action.payload } }
+    }
 
-    case 'SET_TIMELINE_WEEKS':
-      return { ...state, timelineWeeks: action.payload }
+    case 'SET_ACTIVE_SCENARIO':
+      return { ...state, activeScenario: action.payload }
 
     case 'TOGGLE_COMPARE':
       return {
         ...state,
         compareMode: !state.compareMode,
-        // Reset scenario B when entering compare mode
-        scenarioB: !state.compareMode ? { selectedFoods: [], mealsPerDay: 3 } : state.scenarioB,
+        scenarioB: !state.compareMode
+          ? { selectedFoods: [], mealsPerDay: 3 }
+          : state.scenarioB,
       }
-
-    case 'SET_ACTIVE_SCENARIO':
-      return { ...state, activeScenario: action.payload }
 
     case 'SET_MACRO_TAB':
       return { ...state, selectedMacroTab: action.payload }
 
+    case 'SET_TIMELINE_WEEKS':
+      return { ...state, timelineWeeks: action.payload }
+
     case 'RESET_SCENARIO': {
-      const key = state.activeScenario === 'A' ? 'scenarioA' : 'scenarioB'
+      const key = action.scenario === 'A' ? 'scenarioA' : 'scenarioB'
       return { ...state, [key]: { selectedFoods: [], mealsPerDay: 3 } }
     }
 
@@ -86,11 +92,10 @@ export function AppProvider({ children }) {
 
 export function useApp() {
   const ctx = useContext(AppContext)
-  if (!ctx) throw new Error('useApp must be used inside AppProvider')
+  if (!ctx) throw new Error('useApp must be inside AppProvider')
   return ctx
 }
 
-// Convenience selector for active scenario data
 export function useActiveScenario() {
   const { state } = useApp()
   return state.activeScenario === 'A' ? state.scenarioA : state.scenarioB

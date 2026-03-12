@@ -1,67 +1,69 @@
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
-  ReferenceLine, ResponsiveContainer
+  ReferenceArea, ResponsiveContainer
 } from 'recharts'
-import { hourLabel } from '../../utils/curveUtils'
 
-const TICK_HOURS = [0, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 24]
-const DISPLAY_TICKS = [0, 6, 12, 18, 24]
+const X_TICKS = [6, 12, 18]
+const HOUR_LABELS = { 6: '6 AM', 12: '12 PM', 18: '6 PM' }
 
 function CustomTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null
-  const glucose = payload[0]?.value
-  let zone, color
-  if (glucose < 100) { zone = 'Normal 🟢'; color = '#16a34a' }
-  else if (glucose < 140) { zone = 'Elevated 🟡'; color = '#d97706' }
-  else { zone = 'High Spike! 🔴'; color = '#dc2626' }
+  const val = payload[0]?.value
+  let zone, zoneColor
+  if (val < 100)      { zone = 'Normal range';  zoneColor = '#059669' }
+  else if (val < 140) { zone = 'Elevated';      zoneColor = '#d97706' }
+  else                { zone = 'High spike';    zoneColor = '#dc2626' }
 
   return (
-    <div className="bg-white border-2 border-gray-200 rounded-xl shadow-lg p-3 text-xs">
-      <p className="font-bold text-gray-700">{hourLabel(label)}</p>
-      <p style={{ color }} className="font-extrabold text-base">{glucose} mg/dL</p>
-      <p className="text-gray-500">{zone}</p>
+    <div className="bg-white rounded-lg shadow-md px-3 py-2.5 text-xs border border-zinc-100">
+      <p className="text-zinc-400 mb-1">
+        {Math.floor(label)}:{String(Math.round((label % 1) * 60)).padStart(2, '0')}
+      </p>
+      <p className="font-semibold text-zinc-900 text-sm">{val} mg/dL</p>
+      <p style={{ color: zoneColor }} className="font-medium mt-0.5">{zone}</p>
     </div>
   )
 }
 
-export default function GlucoseChart({ data, animated = true }) {
+export default function GlucoseChart({ data }) {
   return (
-    <ResponsiveContainer width="100%" height={180}>
-      <AreaChart data={data} margin={{ top: 8, right: 12, left: -10, bottom: 0 }}>
+    <ResponsiveContainer width="100%" height={160}>
+      <AreaChart data={data} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
         <defs>
-          <linearGradient id="glucoseGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#f97316" stopOpacity={0.5} />
-            <stop offset="95%" stopColor="#f97316" stopOpacity={0.05} />
+          <linearGradient id="glcGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stopColor="#6366f1" stopOpacity={0.12} />
+            <stop offset="100%" stopColor="#6366f1" stopOpacity={0}    />
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+        <ReferenceArea y1={140} y2={220} fill="#fee2e2" fillOpacity={0.4} />
+        <CartesianGrid stroke="#f4f4f5" vertical={false} />
         <XAxis
           dataKey="time"
           type="number"
           domain={[0, 24]}
-          ticks={DISPLAY_TICKS}
-          tickFormatter={hourLabel}
-          tick={{ fontSize: 11, fill: '#6b7280' }}
+          ticks={X_TICKS}
+          tickFormatter={h => HOUR_LABELS[h] ?? ''}
+          tick={{ fontSize: 10, fill: '#a1a1aa' }}
+          axisLine={false}
+          tickLine={false}
         />
         <YAxis
           domain={[60, 220]}
-          tick={{ fontSize: 11, fill: '#6b7280' }}
-          tickFormatter={v => `${v}`}
+          ticks={[80, 100, 140, 180]}
+          tick={{ fontSize: 10, fill: '#a1a1aa' }}
+          axisLine={false}
+          tickLine={false}
         />
-        <Tooltip content={<CustomTooltip />} />
-        {/* Safe zone */}
-        <ReferenceLine y={100} stroke="#22c55e" strokeDasharray="4 4" label={{ value: 'Normal', position: 'right', fontSize: 10, fill: '#16a34a' }} />
-        {/* High zone */}
-        <ReferenceLine y={140} stroke="#ef4444" strokeDasharray="4 4" label={{ value: 'High', position: 'right', fontSize: 10, fill: '#dc2626' }} />
+        <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#e4e4e7', strokeWidth: 1 }} />
         <Area
           type="monotone"
           dataKey="glucose"
-          stroke="#f97316"
-          strokeWidth={2.5}
-          fill="url(#glucoseGrad)"
+          stroke="#6366f1"
+          strokeWidth={1.5}
+          fill="url(#glcGrad)"
           dot={false}
-          isAnimationActive={animated}
-          animationDuration={1200}
+          isAnimationActive={true}
+          animationDuration={900}
           animationEasing="ease-out"
         />
       </AreaChart>
